@@ -1,5 +1,5 @@
 use crate::{
-    runtime::Interpreter,
+    runtime::Runtime,
     parser::*,
 };
 
@@ -56,8 +56,8 @@ fn tokenize_incorrect_input () {
 
 #[test]
 fn interpret_writes_output () {
-    let mut interpreter = Interpreter::new(vec![]);
-    interpreter.run("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.".chars()).unwrap();
+    let mut interpreter = Runtime::new(std::io::empty(), vec![]);
+    interpreter.run(&mut vec![b'.'].as_slice()).unwrap();
 
-    assert_eq!((interpreter.out as Vec<u8>), b"A");
+    assert_eq!((interpreter.output as Vec<u8>).len(), 1);
 }
