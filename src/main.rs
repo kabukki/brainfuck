@@ -1,4 +1,4 @@
-use brainfuck::runtime::Runtime;
+use brainfuck::Runtime;
 
 fn main () -> Result<(), String> {
     let input = std::io::stdin().lock();

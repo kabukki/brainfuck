@@ -1,4 +1,4 @@
-use brainfuck::runtime::Runtime;
+use brainfuck::Runtime;
 
 #[test]
 fn ascii () {

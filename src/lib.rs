@@ -1,5 +1,4 @@
-pub mod parser;
-pub mod runtime;
-
-#[cfg(test)]
-pub mod test;
+mod parser;
+mod runtime;
+pub use parser::*;
+pub use runtime::*;
