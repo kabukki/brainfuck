@@ -1,5 +1,5 @@
 use std::io::{Read, Write};
-use crate::{Expression, tokenize, parse};
+use crate::{Node, tokenize, parse};
 
 pub struct Runtime<In, Out> {
     memory: [u8; 100],
@@ -33,21 +33,21 @@ impl<In, Out> Runtime<In, Out> where In: Read, Out: Write {
         Ok(())
     }
 
-    pub fn exec (&mut self, node: &Expression) {
+    pub fn exec (&mut self, node: &Node) {
         match node {
-            Expression::INCREMENT    => { self.increment(); },
-            Expression::DECREMENT    => { self.decrement(); },
-            Expression::BACKWARD     => { self.backward(); },
-            Expression::FORWARD      => { self.forward(); },
-            Expression::LOOP (children) => {
+            Node::Increment    => { self.increment(); },
+            Node::Decrement    => { self.decrement(); },
+            Node::Backward     => { self.backward(); },
+            Node::Forward      => { self.forward(); },
+            Node::Loop (children) => {
                 while self.memory[self.pointer] != 0 {
                     for child in children {
                         self.exec(child);
                     }
                 }
             },
-            Expression::PRINT        => { self.print(); },
-            Expression::READ         => { self.read(); },
+            Node::Print        => { self.print(); },
+            Node::Read         => { self.read(); },
         }
     }
 
@@ -101,7 +101,7 @@ mod test {
     #[test]
     fn increment () {
         let mut interpreter = Runtime::new(std::io::empty(), vec![]);
-        interpreter.exec(&Expression::INCREMENT);
+        interpreter.exec(&Node::Increment);
         assert_eq!(interpreter.memory[0], 1);
     }
 
@@ -109,7 +109,7 @@ mod test {
     fn increment_wraps () {
         let mut interpreter = Runtime::new(std::io::empty(), vec![]);
         interpreter.memory[0] = u8::MAX;
-        interpreter.exec(&Expression::INCREMENT);
+        interpreter.exec(&Node::Increment);
         assert_eq!(interpreter.memory[0], 0);
     }
 
@@ -117,14 +117,14 @@ mod test {
     fn decrement () {
         let mut interpreter = Runtime::new(std::io::empty(), vec![]);
         interpreter.memory[0] = 1;
-        interpreter.exec(&Expression::DECREMENT);
+        interpreter.exec(&Node::Decrement);
         assert_eq!(interpreter.memory[0], 0);
     }
 
     #[test]
     fn decrement_wraps () {
         let mut interpreter = Runtime::new(std::io::empty(), vec![]);
-        interpreter.exec(&Expression::DECREMENT);
+        interpreter.exec(&Node::Decrement);
         assert_eq!(interpreter.memory[0], u8::MAX);
     }
 
@@ -132,21 +132,21 @@ mod test {
     fn backward () {
         let mut interpreter = Runtime::new(std::io::empty(), vec![]);
         interpreter.pointer = 1;
-        interpreter.exec(&Expression::BACKWARD);
+        interpreter.exec(&Node::Backward);
         assert_eq!(interpreter.pointer, 0);
     }
 
     #[test]
     fn backward_wraps () {
         let mut interpreter = Runtime::new(std::io::empty(), vec![]);
-        interpreter.exec(&Expression::BACKWARD);
+        interpreter.exec(&Node::Backward);
         assert_eq!(interpreter.pointer, usize::MAX);
     }
 
     #[test]
     fn forward () {
         let mut interpreter = Runtime::new(std::io::empty(), vec![]);
-        interpreter.exec(&Expression::FORWARD);
+        interpreter.exec(&Node::Forward);
         assert_eq!(interpreter.pointer, 1);
     }
 
@@ -154,30 +154,30 @@ mod test {
     fn forward_wraps () {
         let mut interpreter = Runtime::new(std::io::empty(), vec![]);
         interpreter.pointer = usize::MAX;
-        interpreter.exec(&Expression::FORWARD);
+        interpreter.exec(&Node::Forward);
         assert_eq!(interpreter.pointer, 0);
     }
 
     #[test]
     fn print () {
         let mut interpreter = Runtime::new(std::io::empty(), vec![]);
-        interpreter.exec(&Expression::PRINT);
+        interpreter.exec(&Node::Print);
         assert_eq!(interpreter.output as Vec<u8>, [0]);
     }
     
     #[test]
     fn read () {
         let mut interpreter = Runtime::new(std::io::repeat(b'A').take(1), vec![]);
-        interpreter.exec(&Expression::READ);
+        interpreter.exec(&Node::Read);
         assert_eq!(interpreter.memory[0], b'A');
         assert_eq!(interpreter.memory[1], 0);
     }
 
     #[test]
     fn loop_once () {
-        let mut interpreter = Runtime::new(std::io::repeat(b'A').take(1), vec![]);
+        let mut interpreter = Runtime::new(std::io::empty(), vec![]);
         interpreter.memory[0] = 1;
-        interpreter.exec(&Expression::LOOP(vec![Expression::DECREMENT]));
+        interpreter.exec(&Node::Loop(vec![Node::Decrement]));
         assert_eq!(interpreter.cycles, 1);
     }
 }

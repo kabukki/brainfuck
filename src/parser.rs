@@ -1,51 +1,46 @@
 use crate::Token;
 
 #[derive(Debug, PartialEq)]
-pub enum Expression {
-    INCREMENT,
-    DECREMENT,
-    BACKWARD,
-    FORWARD,
-    LOOP (Vec<Expression>),
-    PRINT,
-    READ,
+pub enum Node {
+    Increment,
+    Decrement,
+    Backward,
+    Forward,
+    Loop (Vec<Node>),
+    Print,
+    Read,
 }
 
-impl std::fmt::Display for Expression {
-    fn fmt (&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        if let Expression::LOOP(children) = self {
-            writeln!(f, "loop {{")?;
-            for child in children {
-                writeln!(f, "    {}", child)?;
+pub fn parse (tokens: &[Token]) -> Result<Vec<Node>, String> {
+    fn inner (tokens: &[Token], offset: usize) -> (usize, Vec<Node>) {
+        let mut ast: Vec<Node> = vec![];
+        let mut n = offset;
+
+        while n < tokens.len() {
+            let token = &tokens[n];
+
+            n += 1;
+
+            match token {
+                Token::Increment => ast.push(Node::Increment),
+                Token::Decrement => ast.push(Node::Decrement),
+                Token::Forward => ast.push(Node::Forward),
+                Token::Backward => ast.push(Node::Backward),
+                Token::LoopStart => {
+                    let (read, children) = inner(tokens, n);
+                    n += read;
+                    ast.push(Node::Loop(children));
+                },
+                Token::LoopEnd => { break; },
+                Token::Print => ast.push(Node::Print),
+                Token::Read => ast.push(Node::Read),
             }
-            writeln!(f, "}}")
-        } else {
-            write!(f, "{:?}", self)
         }
+    
+        (n - offset, ast)
     }
-}
 
-pub fn parse (tokens: &[Token]) -> Result<Vec<Expression>, String> {
-    let mut ast: Vec<Expression> = vec![];
-    let mut n = 0;
-
-    while n < tokens.len() {
-        match tokens[n] {
-            Token::INCREMENT => ast.push(Expression::INCREMENT),
-            Token::DECREMENT => ast.push(Expression::DECREMENT),
-            Token::FORWARD => ast.push(Expression::FORWARD),
-            Token::BACKWARD => ast.push(Expression::BACKWARD),
-            Token::LOOP_START => {
-                let children = parse(&tokens[n + 1..]).unwrap();
-                n += children.len() + 1;
-                ast.push(Expression::LOOP(children));
-            },
-            Token::LOOP_END => { break; },
-            Token::PRINT => ast.push(Expression::PRINT),
-            Token::READ => ast.push(Expression::READ),
-        }
-        n += 1;
-    }
+    let (_, ast) = inner(tokens, 0);
 
     Ok(ast)
 }
@@ -56,23 +51,66 @@ mod test {
 
     #[test]
     fn simple () {
-        assert_eq!(parse(&[Token::INCREMENT]).unwrap(), &[Expression::INCREMENT]);
-        assert_eq!(parse(&[Token::DECREMENT]).unwrap(), &[Expression::DECREMENT]);
-        assert_eq!(parse(&[Token::BACKWARD]).unwrap(), &[Expression::BACKWARD]);
-        assert_eq!(parse(&[Token::FORWARD]).unwrap(), &[Expression::FORWARD]);
-        assert_eq!(parse(&[Token::PRINT]).unwrap(), &[Expression::PRINT]);
-        assert_eq!(parse(&[Token::READ]).unwrap(), &[Expression::READ]);
+        assert_eq!(parse(&[Token::Increment]).unwrap(), [Node::Increment]);
+        assert_eq!(parse(&[Token::Decrement]).unwrap(), [Node::Decrement]);
+        assert_eq!(parse(&[Token::Backward]).unwrap(), [Node::Backward]);
+        assert_eq!(parse(&[Token::Forward]).unwrap(), [Node::Forward]);
+        assert_eq!(parse(&[Token::Print]).unwrap(), [Node::Print]);
+        assert_eq!(parse(&[Token::Read]).unwrap(), [Node::Read]);
     }
 
     #[test]
     fn nested () {
+        // [+]
         assert_eq!(
-            parse(&[Token::LOOP_START, Token::INCREMENT, Token::LOOP_END]).unwrap(),
-            &[Expression::LOOP(vec![Expression::INCREMENT])],
+            parse(&[
+                Token::LoopStart,
+                    Token::Increment,
+                Token::LoopEnd,
+            ]).unwrap(),
+            [
+                Node::Loop(vec![
+                    Node::Increment
+                ])
+            ],
         );
+        // [[+]]
         assert_eq!(
-            parse(&[Token::LOOP_START, Token::LOOP_START, Token::INCREMENT, Token::LOOP_END, Token::LOOP_END]).unwrap(),
-            &[Expression::LOOP(vec![Expression::LOOP(vec![Expression::INCREMENT])])],
+            parse(&[
+                Token::LoopStart,
+                    Token::LoopStart,
+                        Token::Increment,
+                    Token::LoopEnd,
+                Token::LoopEnd,
+            ]).unwrap(),
+            [
+                Node::Loop(vec![
+                    Node::Loop(vec![
+                        Node::Increment
+                    ])
+                ])
+            ],
+        );
+        // [[[+]]]
+        assert_eq!(
+            parse(&[
+                Token::LoopStart,
+                    Token::LoopStart,
+                        Token::LoopStart,
+                            Token::Increment,
+                        Token::LoopEnd,
+                    Token::LoopEnd,
+                Token::LoopEnd,
+            ]).unwrap(),
+            [
+                Node::Loop(vec![
+                    Node::Loop(vec![
+                        Node::Loop(vec![
+                            Node::Increment
+                        ])
+                    ])
+                ])
+            ],
         );
     }
 }

@@ -1,13 +1,13 @@
 #[derive(Debug, PartialEq)]
 pub enum Token {
-    INCREMENT,
-    DECREMENT,
-    BACKWARD,
-    FORWARD,
-    LOOP_START,
-    LOOP_END,
-    PRINT,
-    READ,
+    Increment,
+    Decrement,
+    Backward,
+    Forward,
+    LoopStart,
+    LoopEnd,
+    Print,
+    Read,
 }
 
 pub fn tokenize (input: std::str::Chars) -> Result<Vec<Token>, String> {
@@ -15,16 +15,16 @@ pub fn tokenize (input: std::str::Chars) -> Result<Vec<Token>, String> {
 
     for char in input {
         if let Some(token) = match char {
-            '+' =>  Some(Token::INCREMENT),
-            '-' =>  Some(Token::DECREMENT),
-            '>' =>  Some(Token::FORWARD),
-            '<' =>  Some(Token::BACKWARD),
-            '[' =>  Some(Token::LOOP_START),
-            ']' =>  Some(Token::LOOP_END),
-            '.' =>  Some(Token::PRINT),
-            ',' =>  Some(Token::READ),
+            '+' => Some(Token::Increment),
+            '-' => Some(Token::Decrement),
+            '>' => Some(Token::Forward),
+            '<' => Some(Token::Backward),
+            '[' => Some(Token::LoopStart),
+            ']' => Some(Token::LoopEnd),
+            '.' => Some(Token::Print),
+            ',' => Some(Token::Read),
             ' ' | '\t' | '\r' | '\n' => None,
-            _   =>  return Err(format!("Syntax error")),
+            _   => return Err(format!("Syntax error")),
         } {
             tokens.push(token);
         }
@@ -39,23 +39,23 @@ mod test {
 
     #[test]
     fn correct_input () {
-        assert_eq!(tokenize("+".chars()).unwrap(), [Token::INCREMENT]);
-        assert_eq!(tokenize("-".chars()).unwrap(), [Token::DECREMENT]);
-        assert_eq!(tokenize("<".chars()).unwrap(), [Token::BACKWARD]);
-        assert_eq!(tokenize(">".chars()).unwrap(), [Token::FORWARD]);
-        assert_eq!(tokenize("[".chars()).unwrap(), [Token::LOOP_START]);
-        assert_eq!(tokenize("]".chars()).unwrap(), [Token::LOOP_END]);
-        assert_eq!(tokenize(".".chars()).unwrap(), [Token::PRINT]);
-        assert_eq!(tokenize(",".chars()).unwrap(), [Token::READ]);
+        assert_eq!(tokenize("+".chars()).unwrap(), [Token::Increment]);
+        assert_eq!(tokenize("-".chars()).unwrap(), [Token::Decrement]);
+        assert_eq!(tokenize("<".chars()).unwrap(), [Token::Backward]);
+        assert_eq!(tokenize(">".chars()).unwrap(), [Token::Forward]);
+        assert_eq!(tokenize("[".chars()).unwrap(), [Token::LoopStart]);
+        assert_eq!(tokenize("]".chars()).unwrap(), [Token::LoopEnd]);
+        assert_eq!(tokenize(".".chars()).unwrap(), [Token::Print]);
+        assert_eq!(tokenize(",".chars()).unwrap(), [Token::Read]);
         assert_eq!(tokenize("+-[]<>.,".chars()).unwrap(), [
-            Token::INCREMENT,
-            Token::DECREMENT,
-            Token::LOOP_START,
-            Token::LOOP_END,
-            Token::BACKWARD,
-            Token::FORWARD,
-            Token::PRINT,
-            Token::READ,
+            Token::Increment,
+            Token::Decrement,
+            Token::LoopStart,
+            Token::LoopEnd,
+            Token::Backward,
+            Token::Forward,
+            Token::Print,
+            Token::Read,
         ]);
     }
 
@@ -68,14 +68,14 @@ mod test {
         assert_eq!(tokenize("\n".chars()).unwrap(), []);
         assert_eq!(tokenize(" \t\r\n".chars()).unwrap(), []);
         assert_eq!(tokenize(" + - [ ] < > . , ".chars()).unwrap(), [
-            Token::INCREMENT,
-            Token::DECREMENT,
-            Token::LOOP_START,
-            Token::LOOP_END,
-            Token::BACKWARD,
-            Token::FORWARD,
-            Token::PRINT,
-            Token::READ,
+            Token::Increment,
+            Token::Decrement,
+            Token::LoopStart,
+            Token::LoopEnd,
+            Token::Backward,
+            Token::Forward,
+            Token::Print,
+            Token::Read,
         ]);
     }
 
