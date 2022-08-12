@@ -2,7 +2,7 @@ use std::io::{Read, Write};
 use crate::{Node, tokenize, parse};
 
 pub struct Runtime<In, Out> {
-    memory: [u8; 100],
+    memory: [u8; 30000],
     pointer: usize,
     cycles: usize,
     pub input: In,
@@ -12,7 +12,7 @@ pub struct Runtime<In, Out> {
 impl<In, Out> Runtime<In, Out> where In: Read, Out: Write {
     pub fn new (input: In, output: Out) -> Self {
         Self {
-            memory: [0; 100],
+            memory: [0; 30000],
             pointer: 0,
             cycles: 0,
             input,

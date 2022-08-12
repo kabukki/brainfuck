@@ -36,7 +36,7 @@ pub fn parse (tokens: &[Token]) -> Result<Vec<Node>, String> {
                 Token::Read => ast.push(Node::Read),
             }
         }
-    
+
         (n - offset, ast)
     }
 
